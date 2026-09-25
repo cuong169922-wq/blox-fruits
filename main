@@ -1,4 +1,5 @@
--- LILY RealPC Fixed — standalone build
+-- LILY COMPLETE PC — standalone build v2.0
+-- Full Auto Farm Level 1–2800 + lightweight UI + execute bootstrap
 -- No Fluent / SaveManager / InterfaceManager dependency.
 -- The LILY controller is initialized before any legacy hub code would run.
 
@@ -47,6 +48,50 @@ if not GuiParent then
     }) end)
     return
 end
+
+--==================================================
+-- LILY BOOTSTRAP / EXECUTE CONFIRMATION
+--==================================================
+-- Keep this section before route/combat logic so a later runtime issue cannot
+-- prevent the user from seeing that the file itself started executing.
+local function notify(title, text, duration)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title, Text = text, Duration = duration or 3
+        })
+    end)
+end
+
+local bootGui = Instance.new("ScreenGui")
+bootGui.Name = "LILY_BOOTSTRAP"
+bootGui.ResetOnSpawn = false
+bootGui.IgnoreGuiInset = true
+bootGui.DisplayOrder = 999999
+bootGui.Parent = GuiParent
+
+local boot = Instance.new("TextLabel")
+boot.Name = "ExecuteStatus"
+boot.AnchorPoint = Vector2.new(0, 1)
+boot.Position = UDim2.new(0, 14, 1, -14)
+boot.Size = UDim2.fromOffset(300, 34)
+boot.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
+boot.BackgroundTransparency = 0.08
+boot.BorderSizePixel = 0
+boot.Font = Enum.Font.GothamMedium
+boot.TextSize = 13
+boot.TextColor3 = Color3.fromRGB(235, 220, 255)
+boot.Text = "LILY • EXECUTED • INITIALIZING"
+boot.Parent = bootGui
+local bootCorner = Instance.new("UICorner")
+bootCorner.CornerRadius = UDim.new(0, 9)
+bootCorner.Parent = boot
+local bootStroke = Instance.new("UIStroke")
+bootStroke.Thickness = 1
+bootStroke.Transparency = 0.25
+bootStroke.Color = Color3.fromRGB(144, 96, 232)
+bootStroke.Parent = boot
+
+notify("LILY", "Script executed • initializing", 2)
 
 --==================================================
 -- GAME ROUTING DATA
@@ -695,28 +740,6 @@ end
 --==================================================
 -- LILY UI
 --==================================================
--- Bootstrap marker: create the GUI first so a client/runtime error later cannot make
--- the user think the script never executed.
-local bootstrap = Instance.new("ScreenGui")
-bootstrap.Name = "Lily_Boot"
-bootstrap.ResetOnSpawn = false
-bootstrap.IgnoreGuiInset = true
-bootstrap.Parent = GuiParent
-local bootLabel = Instance.new("TextLabel")
-bootLabel.Size = UDim2.fromOffset(260, 36)
-bootLabel.Position = UDim2.new(0, 16, 1, -52)
-bootLabel.BackgroundTransparency = 0.18
-bootLabel.BackgroundColor3 = Color3.fromRGB(20, 18, 28)
-bootLabel.BorderSizePixel = 0
-bootLabel.Font = Enum.Font.GothamMedium
-bootLabel.TextSize = 13
-bootLabel.TextColor3 = Color3.fromRGB(235, 220, 255)
-bootLabel.Text = "LILY • EXECUTED / BUILDING UI"
-bootLabel.Parent = bootstrap
-local bootCorner = Instance.new("UICorner")
-bootCorner.CornerRadius = UDim.new(0, 9)
-bootCorner.Parent = bootLabel
-
 pcall(function()
     local old = GuiParent:FindFirstChild("Lily")
     if old then old:Destroy() end
@@ -1492,8 +1515,10 @@ task.spawn(function()
     end
 end)
 
-pcall(function() game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "LILY",
-    Text = IN_BLOX_FRUITS and "Loaded successfully • RightShift = menu" or "Open Blox Fruits first",
-    Duration = 3
-}) end)
+pcall(function()
+    boot.Text = IN_BLOX_FRUITS and "LILY • READY • RightShift = menu" or "LILY • Open Blox Fruits first"
+    task.delay(2.5, function()
+        if bootGui and bootGui.Parent then bootGui:Destroy() end
+    end)
+end)
+notify("LILY", IN_BLOX_FRUITS and "Loaded successfully • RightShift = menu" or "Open Blox Fruits first", 3)
